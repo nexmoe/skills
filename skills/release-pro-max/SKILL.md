@@ -111,7 +111,171 @@ Rules (in priority order):
 
 Display version change: `1.2.3 → 1.3.0`
 
-### Step 4: Generate Multi-language Changelogs
+### Step 4: Capture Feature Screenshots (If Major Features Present)
+
+**When to capture screenshots**:
+- New `feat:` commits introduce user-visible features (UI changes, new pages, new workflows)
+- Breaking changes that alter the user interface
+- Major visual improvements or redesigns
+- Skip for: bug fixes only, performance improvements, refactoring, documentation changes
+
+**Identify screenshot targets**:
+1. Parse commit messages to identify feature type:
+   - UI components: new pages, dialogs, forms, buttons, etc.
+   - Workflows: multi-step processes, onboarding, etc.
+   - Visual changes: new themes, layouts, styles
+2. Ask user which features need screenshots (use AskUserQuestion):
+   - List detected feature commits
+   - Options: feature descriptions with checkboxes (multiSelect: true)
+   - Include "None needed" option
+
+**Screenshot capture process** (for each selected feature):
+
+> **📖 Reference**: See `references/playwright-screenshots.md` for detailed templates and best practices.
+
+1. **Install Playwright if needed**:
+   ```bash
+   # Check if installed
+   if ! npm list playwright > /dev/null 2>&1; then
+     echo "Installing Playwright..."
+     npm install -D playwright
+     npx playwright install chromium
+   fi
+   ```
+
+2. **Detect demo/test URLs**:
+   - Check `package.json` scripts: `dev`, `start`, `demo`, `storybook`
+   - Look for static demo HTML in `demo/`, `examples/`, `public/`
+   - Ask user for URL pattern if not auto-detected
+   - Example questions: "Is your app at http://localhost:3000?" or "What URL should I use?"
+
+3. **Create screenshot directory**:
+   ```bash
+   mkdir -p screenshots
+   mkdir -p .release-screenshots
+   ```
+
+4. **Generate Playwright script** for each feature:
+   
+   Create `.release-screenshots/capture-{feature-slug}.mjs`:
+   
+   ```javascript
+   import { chromium } from 'playwright';
+   
+   (async () => {
+     let browser;
+     try {
+       browser = await chromium.launch();
+       const page = await browser.newPage();
+       
+       // Desktop viewport (1280x800 default)
+       await page.setViewportSize({ width: 1280, height: 800 });
+       
+       // Navigate with timeout
+       await page.goto('http://localhost:3000/feature-path', {
+         timeout: 30000,
+         waitUntil: 'networkidle'
+       });
+       
+       // Wait for specific element (recommended)
+       await page.locator('.feature-element').waitFor({ 
+         state: 'visible',
+         timeout: 10000 
+       });
+       
+       // Optional: interact to reveal feature
+       // await page.click('.demo-trigger');
+       // await page.waitForTimeout(300);
+       
+       // Capture screenshot
+       await page.screenshot({ 
+         path: 'screenshots/{VERSION}-{feature-slug}.png',
+         fullPage: false
+       });
+       
+       console.log('✓ Captured {feature-slug}');
+       
+     } catch (error) {
+       console.error('Screenshot failed:', error.message);
+       process.exit(1);
+     } finally {
+       if (browser) await browser.close();
+     }
+   })();
+   ```
+
+5. **Start dev server if needed**:
+   ```bash
+   # Check if server is already running
+   if ! curl -s http://localhost:3000 > /dev/null 2>&1; then
+     # Start server in background
+     npm run dev > /dev/null 2>&1 &
+     DEV_PID=$!
+     
+     # Wait for server ready (max 30s)
+     for i in {1..30}; do
+       if curl -s http://localhost:3000 > /dev/null 2>&1; then
+         break
+       fi
+       sleep 1
+     done
+     
+     echo "Dev server started (PID: $DEV_PID)"
+   fi
+   ```
+
+6. **Execute screenshot capture**:
+   ```bash
+   # Run all capture scripts
+   for script in .release-screenshots/capture-*.mjs; do
+     echo "Running $(basename $script)..."
+     node "$script"
+   done
+   ```
+
+7. **Verify and optimize**:
+   ```bash
+   # Check screenshot file sizes
+   for img in screenshots/*.png; do
+     size=$(du -k "$img" | cut -f1)
+     if [ $size -gt 500 ]; then
+       echo "⚠️  Warning: $(basename $img) is ${size}KB (> 500KB)"
+     fi
+   done
+   ```
+
+8. **Clean up**:
+   ```bash
+   # Stop dev server if we started it
+   if [ -n "$DEV_PID" ]; then
+     kill $DEV_PID 2>/dev/null
+   fi
+   
+   # Remove temporary scripts
+   rm -rf .release-screenshots
+   ```
+
+**Screenshot naming convention**:
+- Format: `{version}-{feature-slug}.png`
+- Example: `1.3.0-oauth-login.png`, `2.0.0-dark-mode.png`
+- Use lowercase with hyphens, descriptive but concise
+- Version prefix helps organize multiple releases
+
+**Error handling**:
+- If Playwright not installed and install fails: skip screenshots, warn user
+- If demo URL unreachable: ask user to start app manually or skip
+- If screenshot script fails: log error, continue with other features
+- Screenshots are optional enhancements, not blocking
+
+**Alternative: Manual Screenshots**
+
+If Playwright setup fails or user prefers manual capture:
+1. Provide checklist of features to screenshot
+2. Ask user to place screenshots in `screenshots/` with naming convention
+3. Continue to Step 5 after user confirms screenshots are ready
+
+
+### Step 5: Generate Multi-language Changelogs
 
 For each detected changelog file:
 
@@ -126,7 +290,28 @@ For each detected changelog file:
    - Change descriptions written naturally in target language (not translated)
    - Date format: YYYY-MM-DD (universal)
    - **Third-party contributions**: Append contributor attribution `(by @username)` to the changelog entry
+   - **Feature screenshots**: Embed images after feature descriptions (see screenshot embedding below)
 4. **Insert at file head** (preserve existing content)
+
+**Embedding screenshots in changelog**:
+
+When screenshots were captured (Step 4), embed them in the changelog entry immediately after the feature description:
+
+```markdown
+### What's New
+- Sign in with your Google or GitHub account
+  ![OAuth Login](../screenshots/1.3.0-oauth-login.png)
+- New dark mode for better nighttime reading
+  ![Dark Mode](../screenshots/1.3.0-dark-mode.png)
+```
+
+**Screenshot embedding rules**:
+- Only embed screenshots for features where they were captured
+- Place image reference on a new line with 2-space indent
+- Use relative path from changelog location to `screenshots/` directory
+- Image alt text = feature description (brief version)
+- Keep one screenshot per feature (avoid multiple images for same feature)
+- If changelog is in subdirectory, adjust path accordingly (e.g., `../screenshots/` or `../../screenshots/`)
 
 **⚠️ CRITICAL: User-Facing Writing Guidelines**
 
@@ -196,6 +381,7 @@ English (CHANGELOG.md):
 
 ### What's New
 - Sign in with your Google or GitHub account (by @contributor1)
+  ![OAuth Login](../screenshots/1.3.0-oauth-login.png)
 - Link your existing account with third-party login
 
 ### Improvements
@@ -208,6 +394,7 @@ Chinese (CHANGELOG.zh.md):
 
 ### 新增功能
 - 支持使用 Google 或 GitHub 账号登录 (by @contributor1)
+  ![OAuth 登录](../screenshots/1.3.0-oauth-login.png)
 - 可以将已有账号与第三方登录方式绑定
 
 ### 改进与修复
@@ -220,13 +407,14 @@ Japanese (CHANGELOG.ja.md):
 
 ### 新機能
 - GoogleやGitHubアカウントでログインできるようになりました (by @contributor1)
+  ![OAuth ログイン](../screenshots/1.3.0-oauth-login.png)
 - 既存アカウントとサードパーティログインの連携が可能に
 
 ### 改善
 - 長時間使用時にアプリが遅くなる問題を修正
 ```
 
-### Step 5: Group Changes by Skill/Module
+### Step 6: Group Changes by Skill/Module
 
 Analyze commits since last tag and group by affected skill/module:
 
@@ -252,7 +440,7 @@ project:
   - docs: update CLAUDE.md architecture section
 ```
 
-### Step 6: Commit Each Skill/Module Separately
+### Step 7: Commit Each Skill/Module Separately
 
 For each skill/module group (in order of changes):
 
@@ -291,7 +479,7 @@ git commit -m "docs(project): update architecture documentation"
 | Breaking changes | Migration notes, deprecation warnings |
 | Restructured internals | Architecture section (if exposed to users) |
 
-### Step 7: Generate Changelog and Update Version
+### Step 8: Generate Changelog and Update Version
 
 1. **Generate multi-language changelogs** (as described in Step 4)
 2. **Update version file**:
@@ -309,7 +497,7 @@ git commit -m "docs(project): update architecture documentation"
 | marketplace.json | `$.metadata.version` |
 | VERSION / version.txt | Direct content |
 
-### Step 8: User Confirmation
+### Step 9: User Confirmation
 
 Before creating the release commit, ask user to confirm:
 
@@ -340,7 +528,7 @@ Changelog preview (en):
 Ready to create release commit and tag.
 ```
 
-### Step 9: Create Release Commit and Tag
+### Step 10: Create Release Commit and Tag
 
 After user confirmation:
 
@@ -348,6 +536,7 @@ After user confirmation:
    ```bash
    git add <version-file>
    git add CHANGELOG*.md
+   git add screenshots/*.png  # If screenshots were captured
    ```
 
 2. **Create release commit**:
@@ -360,7 +549,7 @@ After user confirmation:
    git tag v{VERSION}
    ```
 
-4. **Push if user confirmed** (Step 8):
+4. **Push if user confirmed** (Step 9):
    ```bash
    git push origin main
    git push origin v{VERSION}
@@ -416,6 +605,18 @@ changelog:
     test: null       # Skip — internal only
     chore: null      # Skip — internal only
 
+# Screenshot configuration
+screenshots:
+  enabled: true           # Set to false to skip screenshot capture
+  directory: screenshots  # Where to store screenshots
+  viewport:
+    width: 1280
+    height: 800
+  # Custom URL patterns for features
+  urlPatterns:
+    oauth: "http://localhost:3000/login"
+    settings: "http://localhost:3000/settings"
+
 # Commit message format
 commit:
   message: "chore: release v{version}"
@@ -445,6 +646,11 @@ Project detected:
 Last tag: v1.2.3
 Proposed version: v1.3.0
 
+Features detected for screenshots:
+  ✓ OAuth login integration
+  ✓ Dark mode theme
+  (Screenshots would be captured if --dry-run was not set)
+
 Changes grouped by skill/module:
   baoyu-cover-image:
     - feat: add watercolor style
@@ -461,6 +667,7 @@ Changelog preview (en):
   ## 1.3.0 - 2026-01-22
   ### What's New
   - New cover styles available: watercolor and minimalist
+    ![Cover Styles](../screenshots/1.3.0-cover-styles.png)
   ### Improvements
   - Comics with longer conversations now display more cleanly
 
@@ -468,6 +675,7 @@ Changelog preview (zh):
   ## 1.3.0 - 2026-01-22
   ### 新增功能
   - 新增封面风格：水彩和极简
+    ![封面风格](../screenshots/1.3.0-cover-styles.png)
   ### 改进与修复
   - 长对话的漫画排版更加美观
 
@@ -475,6 +683,12 @@ Commits to create:
   1. feat(baoyu-cover-image): add watercolor and minimalist styles
   2. fix(baoyu-comic): improve panel layout for long dialogues
   3. chore: release v1.3.0
+
+Files to commit:
+  - package.json (version update)
+  - CHANGELOG.md
+  - CHANGELOG.zh.md
+  - screenshots/1.3.0-cover-styles.png
 
 No changes made. Run without --dry-run to execute.
 ```
