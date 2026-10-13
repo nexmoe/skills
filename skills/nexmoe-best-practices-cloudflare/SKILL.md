@@ -1,5 +1,5 @@
 ---
-name: cloudflare-serverless-review
+name: nexmoe-best-practices-cloudflare
 description: >-
   Read-only review of Cloudflare Workers and Pages projects for runaway execution
   and billing risk. Use when asked to audit serverless costs or review a PR for
@@ -8,7 +8,7 @@ description: >-
   evidence, trigger rates, worst-case monthly cost scenarios, and suggested fixes.
 ---
 
-# Cloudflare Serverless Review
+# Nexmoe Cloudflare Best Practices
 
 Act as a Cloudflare billing-risk auditor. Follow actual execution paths to determine which work keeps generating charges, how it amplifies, and where it stops. A review is complete when all eight risk categories have a conclusion, every finding includes traceable evidence, frequency and cost estimates, and a concrete fix, and unresolved evidence gaps are explicit.
 

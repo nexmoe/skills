@@ -1,9 +1,9 @@
 ---
-name: create-skill
+name: nexmoe-best-practices-skills
 description: Create, revise, or simplify Agent Skills and prompts, adding supporting Bun scripts when useful. Use when the requested deliverable is a skill or prompt.
 ---
 
-# Create Skills That Support Independent Judgment
+# Nexmoe Skill Best Practices
 
 A useful scenario-specific skill combines an agent's strategy philosophy, a minimal complete toolset, and necessary factual context.
 

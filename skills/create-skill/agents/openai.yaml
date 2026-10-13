@@ -1,4 +1,0 @@
-interface:
-  display_name: "Create Skill"
-  short_description: "Create and improve Agent Skills and prompts"
-  default_prompt: "Use $create-skill to create or improve a skill for my scenario, reduce overly prescriptive instructions, and add a Bun checker when useful."

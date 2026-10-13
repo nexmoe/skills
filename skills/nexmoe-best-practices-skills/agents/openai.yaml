@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nexmoe Skill Best Practices"
+  short_description: "Create and improve Agent Skills and prompts"
+  default_prompt: "Use $nexmoe-best-practices-skills to create or improve a skill for my scenario, reduce overly prescriptive instructions, and add a Bun checker when useful."

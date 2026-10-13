@@ -1,4 +1,0 @@
-interface:
-  display_name: "Cloudflare Serverless Review"
-  short_description: "Audit runaway execution and serverless billing risks"
-  default_prompt: "Use $cloudflare-serverless-review to audit this project's Cloudflare billing risks without changing code, reporting evidence, trigger rates, worst-case monthly cost scenarios, and suggested fixes."

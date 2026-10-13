@@ -1,15 +1,15 @@
 ---
-name: release-pro-max
+name: nexmoe-best-practices-release
 description: Universal release workflow. Auto-detects version files and changelogs. Supports Node.js, Python, Rust, Claude Plugin, and generic projects. Use when user says "release", "发布", "new version", "bump version", or asks to "push" / "推送" a release. Not for ordinary branch commits, pushes or PRs.
 ---
 
-# Release Skills
+# Nexmoe Release Best Practices
 
 Universal release workflow supporting any project type with multi-language changelog.
 
 ## Quick Start
 
-Just run `/release-pro-max` - auto-detects your project configuration.
+Just run `/nexmoe-best-practices-release` - auto-detects your project configuration.
 
 ## Supported Projects
 
@@ -482,11 +482,11 @@ No changes made. Run without --dry-run to execute.
 ## Example Usage
 
 ```
-/release-pro-max              # Auto-detect version bump
-/release-pro-max --dry-run    # Preview only
-/release-pro-max --minor      # Force minor bump
-/release-pro-max --patch      # Force patch bump
-/release-pro-max --major      # Force major bump (with confirmation)
+/nexmoe-best-practices-release              # Auto-detect version bump
+/nexmoe-best-practices-release --dry-run    # Preview only
+/nexmoe-best-practices-release --minor      # Force minor bump
+/nexmoe-best-practices-release --patch      # Force patch bump
+/nexmoe-best-practices-release --major      # Force major bump (with confirmation)
 ```
 
 ## When to Use

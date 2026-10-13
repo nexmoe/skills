@@ -10,7 +10,7 @@ const temporary: string[] = [];
 const script = fileURLToPath(new URL("./check-skill.ts", import.meta.url));
 
 function fixture(body = "# 场景\n\n以找到可验证的原始资料为完成标准。", frontmatter = "name: sample-skill\ndescription: 创建场景产物。") {
-  const parent = mkdtempSync(join(tmpdir(), "create-skill-"));
+  const parent = mkdtempSync(join(tmpdir(), "nexmoe-best-practices-skills-"));
   temporary.push(parent);
   const root = join(parent, "sample-skill");
   mkdirSync(root);

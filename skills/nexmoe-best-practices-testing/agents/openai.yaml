@@ -1,0 +1,5 @@
+interface:
+  display_name: "行为测试"
+  short_description: "BDD 场景先行、E2E 优先、禁止 mock 的行为测试与 lint 治理"
+policy:
+  allow_implicit_invocation: true
