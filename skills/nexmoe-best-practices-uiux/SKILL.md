@@ -8,6 +8,6 @@ description: 网站 UI/UX 最佳实践与实施规范，持续收录界面和交
 按当前任务选择并阅读对应主题文件，遵循其中与任务相关的规则。
 
 - [i18n 与多语言](references/i18n.md)：新增、调整或审查语言推荐横幅、语言切换、URL 语言路由、语言偏好存储、内容语言回退或多语言 SEO 时阅读。
-- [Press Kit 媒体素材包](references/press-kit.md)：新增、调整或审查 Press Kit 页面、媒体文案、品牌素材下载或页脚 Press Kit 入口时阅读。
+- [Press Kit 媒体素材包](references/press-kit.md)：新增、调整或审查 Press Kit 页面、媒体文案、品牌素材下载、按语言组织的 mock 数据与实机截图或页脚 Press Kit 入口时阅读；涉及多语言页面时同时阅读 i18n 规范。
 
 具体规范按主题存放于 `references/`；新增主题时同步补充本索引及适用场景。
